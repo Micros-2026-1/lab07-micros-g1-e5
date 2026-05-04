@@ -1,0 +1,47 @@
+#pragma config FOSC = INTIO67   
+#pragma config PLLCFG = OFF    
+#pragma config PRICLKEN = ON    
+#pragma config WDTEN = OFF      
+#pragma config PWRTEN = OFF     
+#pragma config BOREN = OFF      
+#pragma config MCLRE = EXTMCLR  
+#pragma config PBADEN = OFF    
+
+#define _XTAL_FREQ 48000000UL
+#include <xc.h>
+#include "i2c.h"
+#include "i2c_lcd.h"
+
+void scroll_string(const char *str, unsigned char row, unsigned char total_cols)
+{
+    unsigned char len = 0;
+    while (str[len] != '\0') len++;
+
+    // Desplazamiento de derecha a izquierda
+    for (int offset = total_cols; offset >= -(int)len; offset--)
+    {
+        lcd_clear();
+        lcd_set_cursor(row, 0);
+
+        for (unsigned char i = 0; i < total_cols; i++)
+        {
+            int idx = (int)i - offset;
+            if (idx >= 0 && idx < (int)len)
+                lcd_write_char(str[idx]);
+            else
+                lcd_write_char(' ');
+        }
+        __delay_ms(300);
+    }
+}
+
+void main(void)
+{
+    I2C_init();
+    lcd_init();
+
+    while (1)
+    {
+        scroll_string("Microcontroladores", 0, 16);
+    }
+}
